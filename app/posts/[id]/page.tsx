@@ -1,34 +1,79 @@
-const fetchPost = async (postID: string) => {
-    // This function fetches a post from the server based on the provided postID.
-    // It uses the fetch API to make an HTTP GET request to the server.
-    const post = await fetch(
-        `https://guillaume-nextjs13-course.vercel.app//api/posts/${postID}`, {
-        method: 'GET',
-    });
-    // The response from the server is returned as a Promise.
-    // We use the .json() method to parse the response body as JSON.
-    return post.json();
-}
+// CLIENT SIDE DATA FETCHING
 
-export async function generateMetadata({ params }: any) {
-    // This function generates metadata for a post based on the provided params.
-    // It expects the params object to contain an 'id' property.
-    // It calls the fetchPost function to fetch the post data from the server.
-    const { post } = await fetchPost(params.id);
+'use client';
 
-    // The post data is an array, and we assume it contains at least one element.
-    // We extract the title and description properties from the first element of the array.
-    return {
-        title: post[0].title,
-        description: post[0].description,
-    }
+import { time } from "console";
+import { useEffect, useState } from "react";
+
+type Post = {
+    title?: string;
+    description?: string;
 }
 
 export default function PostID({ params }: any) {
-    // This is a React functional component that renders the post ID.
-    // It expects the params object to contain an 'id' property.
-    // The post ID is displayed within a <main> element.
+    const [post, setPost] = useState<Post | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
+
+    const getPostByID = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch(`http://localhost:3000//api/posts/${params.id}`, {
+                method: 'GET',
+                next: {
+                    revalidate: 5000,
+                }
+            });
+
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            if (response) {
+                const { post } = await response.json();
+                if (post) setPost(post);
+            }
+        } catch (error) {
+            console.log(error);
+        } finally {
+            setLoading(false);
+        };
+    };
+
+    useEffect(() => {
+        getPostByID();
+    }, []);
+
     return (
-        <main>Post ID: {params.id}</main>
+        <main>
+            {loading && <div>loading..</div>}
+            {!loading && <div>
+                {post && <h1>{post.title}</h1>}
+                {post && <h2>Post #: {params.id}</h2>}
+                {post && <p>{post.description}</p>}
+            </div>}
+        </main>
     )
 }
+
+// SERVER SIDE DATA FETCHING
+
+// async function getPostByID(postID: string) {
+//     const response = await fetch(`http://localhost:3000//api/posts/${postID}`, {
+//         method: 'GET',
+//     });
+
+//     const { post } = await response.json();
+//     return post;
+// }
+
+// export default async function PostID({ params }: any) {
+//     const post = await getPostByID(params.id);
+
+//     console.log(post);
+
+//     return (
+//         <main>
+//             <h1>{post.title}</h1>
+//             <h2>Post #: {params.id}</h2>
+//             <p>{post.description}</p>
+//         </main>
+//     )
+// }
