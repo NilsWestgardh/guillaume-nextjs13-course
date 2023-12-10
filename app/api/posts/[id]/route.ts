@@ -8,7 +8,7 @@ const post: any = [
     },
 ];
 
-export default async function GET(request: Request, context: any) {
+export async function GET(request: Request, context: any) {
     const { params } = context;
     return NextResponse.json({
         post: post.find((post: any) => post.id.toString() === params.id),
