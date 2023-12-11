@@ -1,8 +1,7 @@
-// CLIENT SIDE DATA FETCHING
+CLIENT SIDE DATA FETCHING
 
 'use client';
 
-import { time } from "console";
 import { useEffect, useState } from "react";
 
 type Post = {
